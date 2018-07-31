@@ -1,0 +1,1 @@
+gcloud beta functions deploy pubsub_telemetry_handler --runtime python37 --trigger-resource telemetry --trigger-event google.pubsub.topic.publish
