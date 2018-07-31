@@ -1,1 +1,2 @@
 gcloud beta functions deploy pubsub_telemetry_handler --runtime python37 --trigger-resource telemetry --trigger-event google.pubsub.topic.publish
+gcloud beta functions deploy query_history_data --runtime python37 --trigger-http

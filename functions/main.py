@@ -3,8 +3,9 @@ import logging
 import os
 import json
 
+from flask import Response
 import pandas as pd
-from pandas_gbq import to_gbq
+from pandas_gbq import to_gbq, read_gbq
 import firebase_admin
 from firebase_admin import db, initialize_app, credentials
 
@@ -26,6 +27,30 @@ def insert_bigquery(data):
 def update_ref_firebase(device_id, data):
     ref = db.reference('/devices/{}'.format(device_id))
     ref.set(data)
+
+
+def query_history_data(request):
+    df = read_gbq("""
+        SELECT
+            TIMESTAMP_TRUNC(timestamp(d.timestamp), HOUR, 'America/Cuiaba') date_time,
+            avg(d.temperature) as avg_temperature, 
+            avg(d.methane) as avg_methane, 
+            avg(d.humidity) as avg_humidity, 
+            avg(d.air_quality) as avg_air_quality
+        FROM
+            `iot-cat-poop-detector.detector_dataset.raw_data` d
+        where 
+            timestamp(d.timestamp) between timestamp_sub(current_timestamp, INTERVAL 7 DAY) and current_timestamp()
+            and d.temperature between 0 and 100
+        GROUP BY
+            date_time
+        ORDER BY
+            date_time
+     """, project_id=project_id, dialect='standard')
+
+    output = df.to_json(orient='records')
+    resp = Response(response=output, status=200, mimetype="application/json")
+    return resp
 
 
 def pubsub_telemetry_handler(data, context):
