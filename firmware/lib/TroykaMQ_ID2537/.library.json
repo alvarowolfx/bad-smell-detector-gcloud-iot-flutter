@@ -1,0 +1,55 @@
+{
+    "description": "Allows to read data from gas sensors of the MQx series in ppm.", 
+    "repository": {
+        "url": "https://github.com/amperka/TroykaMQ", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "atmelavr", 
+        "atmelsam", 
+        "espressif32", 
+        "espressif8266", 
+        "intel_arc32", 
+        "microchippic32", 
+        "nordicnrf51", 
+        "nordicnrf52", 
+        "ststm32", 
+        "teensy", 
+        "timsp430"
+    ], 
+    "export": {
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ], 
+        "include": null
+    }, 
+    "authors": [
+        {
+            "maintainer": false, 
+            "name": "Igor Dementiev", 
+            "url": null, 
+            "email": null
+        }, 
+        {
+            "maintainer": true, 
+            "name": "Amperka", 
+            "url": null, 
+            "email": "amperka.ru"
+        }
+    ], 
+    "keywords": [
+        "sensors"
+    ], 
+    "id": 2537, 
+    "name": "TroykaMQ", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "version": "1.1", 
+    "homepage": null
+}
