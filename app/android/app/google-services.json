@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "890087701851",
+    "firebase_url": "https://iot-cat-poop-detector.firebaseio.com",
+    "project_id": "iot-cat-poop-detector",
+    "storage_bucket": "iot-cat-poop-detector.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:890087701851:android:5ec166fdbdedf057",
+        "android_client_info": {
+          "package_name": "com.aviebrantz.badsmell"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "890087701851-8v8e0p7jldbnp99skajg1mtaa2fkc372.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfuSO6G4gYp9CQlGwBreVdSiicLue1tIw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
