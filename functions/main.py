@@ -3,7 +3,7 @@ import logging
 import os
 import json
 
-from flask import Response
+from flask import Response, Request
 import pandas as pd
 from pandas_gbq import to_gbq, read_gbq
 import firebase_admin
@@ -30,6 +30,11 @@ def update_ref_firebase(device_id, data):
 
 
 def query_history_data(request):
+    '''
+    :param request:
+    :type request: Request
+    '''
+    deviceId = request.args.get('deviceId')
     df = read_gbq("""
         SELECT
             TIMESTAMP_TRUNC(timestamp(d.timestamp), HOUR, 'America/Cuiaba') date_time,
@@ -42,11 +47,12 @@ def query_history_data(request):
         where 
             timestamp(d.timestamp) between timestamp_sub(current_timestamp, INTERVAL 7 DAY) and current_timestamp()
             and d.temperature between 0 and 100
+            and d.device_id = '{}'
         GROUP BY
             date_time
         ORDER BY
             date_time
-     """, project_id=project_id, dialect='standard')
+     """.format(deviceId), project_id=project_id, dialect='standard')
 
     output = df.to_json(orient='records')
     resp = Response(response=output, status=200, mimetype="application/json")

@@ -11,8 +11,15 @@ class Device extends Object {
   num airQualityPPM;
   num methanePPM;
 
-  Device(this.name, String timestamp, this.temperature, this.humidity,
-      this.airQuality, this.methane, this.airQualityPPM, this.methanePPM) {
+  Device(
+      {this.name,
+      String timestamp,
+      this.temperature,
+      this.humidity,
+      this.airQuality,
+      this.methane,
+      this.airQualityPPM,
+      this.methanePPM}) {
     this.timestamp = DateTime.parse(timestamp).toLocal();
   }
 
@@ -20,14 +27,16 @@ class Device extends Object {
     return "${DateFormat.yMd().format(this.timestamp)} ${DateFormat.jm().format(this.timestamp)}";
   }
 
-  Device.fromSnapshot(DataSnapshot snapshot) {
-    this.name = snapshot.key;
-    this.timestamp = DateTime.parse(snapshot.value['timestamp']).toLocal();
-    this.temperature = snapshot.value['temperature'];
-    this.humidity = snapshot.value['humidity'];
-    this.airQuality = snapshot.value['air_quality'];
-    this.methane = snapshot.value['methane'];
-    this.airQualityPPM = snapshot.value['air_quality_ppm'];
-    this.methanePPM = snapshot.value['methane_ppm'];
+  factory Device.fromSnapshot(DataSnapshot snapshot) {
+    return Device(
+      name: snapshot.key,
+      timestamp: snapshot.value['timestamp'],
+      temperature: snapshot.value['temperature'],
+      humidity: snapshot.value['humidity'],
+      airQuality: snapshot.value['air_quality'],
+      methane: snapshot.value['methane'],
+      airQualityPPM: snapshot.value['air_quality_ppm'],
+      methanePPM: snapshot.value['methane_ppm'],
+    );
   }
 }

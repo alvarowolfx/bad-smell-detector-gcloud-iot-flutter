@@ -1,4 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 import 'package:app/models/Device.dart';
+import 'package:app/models/DeviceAvgPoint.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_sparkline/flutter_sparkline.dart';
@@ -12,217 +17,23 @@ class DeviceChartPage extends StatefulWidget {
 }
 
 class _DeviceChartPageState extends State<DeviceChartPage> {
-  final List<List<double>> charts = [
-    [
-      0.0,
-      0.3,
-      0.7,
-      0.6,
-      0.55,
-      0.8,
-      1.2,
-      1.3,
-      1.35,
-      0.9,
-      1.5,
-      1.7,
-      1.8,
-      1.7,
-      1.2,
-      0.8,
-      1.9,
-      2.0,
-      2.2,
-      1.9,
-      2.2,
-      2.1,
-      2.0,
-      2.3,
-      2.4,
-      2.45,
-      2.6,
-      3.6,
-      2.6,
-      2.7,
-      2.9,
-      2.8,
-      3.4
-    ],
-    [
-      0.0,
-      0.3,
-      0.7,
-      0.6,
-      0.55,
-      0.8,
-      1.2,
-      1.3,
-      1.35,
-      0.9,
-      1.5,
-      1.7,
-      1.8,
-      1.7,
-      1.2,
-      0.8,
-      1.9,
-      2.0,
-      2.2,
-      1.9,
-      2.2,
-      2.1,
-      2.0,
-      2.3,
-      2.4,
-      2.45,
-      2.6,
-      3.6,
-      2.6,
-      2.7,
-      2.9,
-      2.8,
-      3.4,
-      0.0,
-      0.3,
-      0.7,
-      0.6,
-      0.55,
-      0.8,
-      1.2,
-      1.3,
-      1.35,
-      0.9,
-      1.5,
-      1.7,
-      1.8,
-      1.7,
-      1.2,
-      0.8,
-      1.9,
-      2.0,
-      2.2,
-      1.9,
-      2.2,
-      2.1,
-      2.0,
-      2.3,
-      2.4,
-      2.45,
-      2.6,
-      3.6,
-      2.6,
-      2.7,
-      2.9,
-      2.8,
-      3.4,
-    ],
-    [
-      0.0,
-      0.3,
-      0.7,
-      0.6,
-      0.55,
-      0.8,
-      1.2,
-      1.3,
-      1.35,
-      0.9,
-      1.5,
-      1.7,
-      1.8,
-      1.7,
-      1.2,
-      0.8,
-      1.9,
-      2.0,
-      2.2,
-      1.9,
-      2.2,
-      2.1,
-      2.0,
-      2.3,
-      2.4,
-      2.45,
-      2.6,
-      3.6,
-      2.6,
-      2.7,
-      2.9,
-      2.8,
-      3.4,
-      0.0,
-      0.3,
-      0.7,
-      0.6,
-      0.55,
-      0.8,
-      1.2,
-      1.3,
-      1.35,
-      0.9,
-      1.5,
-      1.7,
-      1.8,
-      1.7,
-      1.2,
-      0.8,
-      1.9,
-      2.0,
-      2.2,
-      1.9,
-      2.2,
-      2.1,
-      2.0,
-      2.3,
-      2.4,
-      2.45,
-      2.6,
-      3.6,
-      2.6,
-      2.7,
-      2.9,
-      2.8,
-      3.4,
-      0.0,
-      0.3,
-      0.7,
-      0.6,
-      0.55,
-      0.8,
-      1.2,
-      1.3,
-      1.35,
-      0.9,
-      1.5,
-      1.7,
-      1.8,
-      1.7,
-      1.2,
-      0.8,
-      1.9,
-      2.0,
-      2.2,
-      1.9,
-      2.2,
-      2.1,
-      2.0,
-      2.3,
-      2.4,
-      2.45,
-      2.6,
-      3.6,
-      2.6,
-      2.7,
-      2.9,
-      2.8,
-      3.4
-    ]
-  ];
-
-  void initState() {
-    super.initState();
-
-    // TODO: Fetch from cloud function
+  Future<List<DeviceAvgPoint>> fetchPoints() async {
+    var deviceId = this.widget.device.name;
+    var url =
+        "https://us-central1-iot-cat-poop-detector.cloudfunctions.net/query_history_data?deviceId=" +
+            deviceId;
+    print(url);
+    var response = await http.get(url);
+    if (response.statusCode == 200) {
+      // If server returns an OK response, parse the JSON
+      List items = json.decode(response.body);
+      List<DeviceAvgPoint> points =
+          items.map((item) => DeviceAvgPoint.fromJson(item)).toList();
+      return points;
+    } else {
+      // If that response was not OK, throw an error.
+      throw Exception('Failed to load post');
+    }
   }
 
   Widget _buildCard(Widget child, {Function() onTap}) {
@@ -281,24 +92,53 @@ class _DeviceChartPageState extends State<DeviceChartPage> {
     );
   }
 
+  Widget buildBody() {
+    return FutureBuilder<List<DeviceAvgPoint>>(
+      future: fetchPoints(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          if (snapshot.data.length == 0) {
+            return Center(
+              child: Text('No history data.'),
+            );
+          }
+
+          var points = snapshot.data;
+          var methanePoints =
+              points.map((point) => point.avgMethane.toDouble()).toList();
+          var airQualityPoints =
+              points.map((point) => point.avgAirQuality.toDouble()).toList();
+          var temperaturePoints =
+              points.map((point) => point.avgTemperature.toDouble()).toList();
+          var humidityPoints =
+              points.map((point) => point.avgHumidity.toDouble()).toList();
+          return new ListView(
+            children: <Widget>[
+              _buildSparklineDataCard(
+                  'Methane', this.widget.device.methane, 'ppm', methanePoints),
+              _buildSparklineDataCard('Air Quality',
+                  this.widget.device.airQuality, 'ppm', airQualityPoints),
+              _buildSparklineDataCard(
+                  'Humidity', this.widget.device.humidity, '%', humidityPoints),
+              _buildSparklineDataCard('Temperature',
+                  this.widget.device.temperature, 'Cº', temperaturePoints),
+            ],
+          );
+        } else if (snapshot.hasError) {
+          return Text("${snapshot.error}");
+        }
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text(this.widget.device.name),
       ),
-      body: new ListView(
-        children: <Widget>[
-          _buildSparklineDataCard(
-              'Methane', this.widget.device.methane, 'ppm', charts[2]),
-          _buildSparklineDataCard(
-              'Air Quality', this.widget.device.airQuality, 'ppm', charts[1]),
-          _buildSparklineDataCard(
-              'Humidity', this.widget.device.humidity, '%', charts[0]),
-          _buildSparklineDataCard(
-              'Temperature', this.widget.device.temperature, 'Cº', charts[1]),
-        ],
-      ),
+      body: buildBody(),
     );
   }
 }
