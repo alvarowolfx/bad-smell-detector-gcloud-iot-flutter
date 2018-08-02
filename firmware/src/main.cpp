@@ -255,11 +255,16 @@ void reconectWiFi()
     tickerWifiLed.attach_ms(500, blinkWifi);
 
     WiFi.begin(ssid, password);
-
+    int count = 0;
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(100);
         Serial.print(".");
+        count++;
+        if (count > 100)
+        {
+            break;
+        }
     }
 
     Serial.println();
