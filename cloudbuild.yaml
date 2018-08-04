@@ -1,7 +1,7 @@
 steps:
 - name: 'sglahn/platformio-core:latest'  
   dir: firmware
-  args: ['run','-e','esp32']
+  args: ['run']
 artifacts: 
   objects: 
     location: 'gs://firmwares/$TAG_NAME'
