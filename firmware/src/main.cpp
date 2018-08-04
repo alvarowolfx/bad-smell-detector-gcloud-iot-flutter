@@ -14,10 +14,13 @@
  *****************************************************************************/
 #include <CloudIoTCore.h>
 #include <WiFiClientSecure.h>
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#endif
 #include <rBase64.h>
 #include <time.h>
 #include <Ticker.h>
-#include <aJSON.h>
+#include <ArduinoJson.h>
 #include <DHT.h>
 #include "ciotc_config.h"
 #include <TroykaMQ.h>
@@ -67,8 +70,7 @@ bool firstCallback = true;
 int failedCount = 0;
 
 String getJwt()
-{
-    jwt = device.createJWT(time(nullptr));
+{    
     return jwt;
 }
 
@@ -117,29 +119,28 @@ void sendTelemetry(const char *data)
 
 void renewJwt()
 {
-    getJwt();
+    jwt = device.createJWT(time(nullptr));    
 }
 
 void sendPeriodicTelemetry()
 {
-    Serial.println("Send periodic telemetry");
-    aJsonObject *root = aJson.createObject();
-    if (root != NULL)
-    {
-        //aJson.addStringToObject(root, "type", "rect");
-        aJson.addNumberToObject(root, "methane", methane);
-        aJson.addNumberToObject(root, "air_quality", airQuality);
-        aJson.addNumberToObject(root, "methane_ppm", methanePPM);
-        aJson.addNumberToObject(root, "air_quality_ppm", airQualityPPM);
-        aJson.addNumberToObject(root, "humidity", humidity);
-        aJson.addNumberToObject(root, "temperature", temperature);
-        //aJson.addBooleanToObject(root, "interlace", false);
+    Serial.println("Send periodic telemetry");    
+    DynamicJsonBuffer jsonBuffer(1000);
+    JsonObject& root = jsonBuffer.createObject();    
+    
+    root["methane"] = methane;
+    root["air_quality"] = airQuality;
+    root["methane_ppm"] = methanePPM;
+    root["air_quality_ppm"] = airQualityPPM;
+    root["humidity"] = humidity;
+    root["temperature"] = temperature;
 
-        char *jsonString = aJson.print(root);
-        Serial.println(jsonString);
-        sendTelemetry(jsonString);
-        return;
-    }
+    String jsonString;
+    root.printTo(jsonString);
+
+    Serial.println(jsonString);
+    sendTelemetry(jsonString.c_str());
+    return;    
 }
 
 void updateSensors()
@@ -300,7 +301,9 @@ void setup()
     }
 
     // FIXME: Avoid MITM, validate the server.
-    client.setCACert(root_cert);
+    #ifdef ESP32
+        client.setCACert(root_cert);
+    #endif
     mqttClient.setServer(host, httpsPort);
     mqttClient.setCallback(callback);
 

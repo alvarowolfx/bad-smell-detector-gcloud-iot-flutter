@@ -47,6 +47,8 @@ def query_history_data(request):
         where 
             timestamp(d.timestamp) between timestamp_sub(current_timestamp, INTERVAL 7 DAY) and current_timestamp()
             and d.temperature between 0 and 100
+            and d.methane between 0 and 5000
+            and d.air_quality between 0 and 5000
             and d.device_id = '{}'
         GROUP BY
             date_time
