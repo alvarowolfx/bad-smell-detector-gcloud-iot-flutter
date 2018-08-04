@@ -1,6 +1,9 @@
 steps:
 - name: 'sglahn/platformio-core:latest'  
   dir: firmware
+  args: ['lib','install','https://github.com/alvarowolfx/google-cloud-iot-arduino.git#remove-string-h']
+- name: 'sglahn/platformio-core:latest'  
+  dir: firmware
   args: ['run']
 artifacts: 
   objects: 
