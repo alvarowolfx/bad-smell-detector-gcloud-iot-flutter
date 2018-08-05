@@ -17,11 +17,10 @@ initialize_app(options={
     'databaseURL': 'https://iot-cat-poop-detector.firebaseio.com/'
 })
 
-
 def insert_bigquery(data):
     df = pd.DataFrame.from_records([data])
     to_gbq(df, '{}.{}'.format(dataset_id, table_name),
-           project_id, if_exists='append')
+           project_id, if_exists='append',  )
 
 
 def update_ref_firebase(device_id, data):
@@ -34,7 +33,11 @@ def query_history_data(request):
     :param request:
     :type request: Request
     '''
+    logging.info('[query_history_data] started.')
+
     deviceId = request.args.get('deviceId')
+
+    logging.info('[query_history_data][read_gbq] started.')
     df = read_gbq("""
         SELECT
             TIMESTAMP_TRUNC(timestamp(d.timestamp), HOUR, 'America/Cuiaba') date_time,
@@ -55,9 +58,12 @@ def query_history_data(request):
         ORDER BY
             date_time
      """.format(deviceId), project_id=project_id, dialect='standard')
+    logging.info('[query_history_data][read_gbq] ended.')
 
+    logging.info('[query_history_data][to_json] started.')
     output = df.to_json(orient='records')
     resp = Response(response=output, status=200, mimetype="application/json")
+    logging.info('[query_history_data][to_json] ended.')
     return resp
 
 
@@ -68,14 +74,17 @@ def pubsub_telemetry_handler(data, context):
          context (google.cloud.functions.Context): The Cloud Functions event
          context.
     """
+    logging.info('[pubsub_telemetry_handler] started.')
 
     print('Received : {}'.format(data))
     print('Received context: {}'.format(context))
 
+    logging.info('[pubsub_telemetry_handler][parse_data] started.')
     attributes = data['attributes']
     received_data = json.loads(base64.b64decode(data['data']).decode('utf-8'))
     received_data['timestamp'] = context.timestamp
     device_id = attributes['deviceId']
+    logging.info('[pubsub_telemetry_handler][parse_data] ended.')
 
     if received_data['methane'] < 0 or received_data['air_quality'] < 0:
         logging.error('Invalid data received: %s', received_data)
@@ -83,6 +92,13 @@ def pubsub_telemetry_handler(data, context):
 
     logging.info('Received valid : %s', received_data)
 
+    logging.info('[pubsub_telemetry_handler][update_ref_firebase] started.')
     update_ref_firebase(device_id, received_data)
+    logging.info('[pubsub_telemetry_handler][update_ref_firebase] ended.')
+
+    logging.info('[pubsub_telemetry_handler][insert_bigquery] started.')
     received_data["device_id"] = device_id
     insert_bigquery(received_data)
+    logging.info('[pubsub_telemetry_handler][insert_bigquery] ended.')
+
+    logging.info('[pubsub_telemetry_handler] finished.')
