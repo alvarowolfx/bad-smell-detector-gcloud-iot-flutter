@@ -6,21 +6,40 @@ import json
 from flask import Response, Request
 import pandas as pd
 from pandas_gbq import to_gbq, read_gbq
+from google.cloud import bigquery
 import firebase_admin
 from firebase_admin import db, initialize_app, credentials
 
 dataset_id = 'detector_dataset'
 table_name = 'raw_data'
 project_id = os.getenv('GCLOUD_PROJECT')
+client = bigquery.Client()
 
 initialize_app(options={
     'databaseURL': 'https://iot-cat-poop-detector.firebaseio.com/'
 })
 
 def insert_bigquery(data):
-    df = pd.DataFrame.from_records([data])
-    to_gbq(df, '{}.{}'.format(dataset_id, table_name),
-           project_id, if_exists='append',  )
+    #df = pd.DataFrame.from_records([data])
+    #to_gbq(df, '{}.{}'.format(dataset_id, table_name),
+    #       project_id, if_exists='append',  )
+    dataset_ref = client.dataset(dataset_id, project=project_id)    
+    table_ref = dataset_ref.table(table_name)
+    table = client.get_table(table_ref)
+
+    rows_to_insert = [
+        (
+            data['air_quality'], 
+            data['air_quality_ppm'], 
+            data['device_id'], 
+            data['humidity'], 
+            data['methane'],
+            data['methane_ppm'],
+            data['temperature'],
+            data['timestamp'],
+        )
+    ]    
+    client.insert_rows(table,rows_to_insert)
 
 
 def update_ref_firebase(device_id, data):
