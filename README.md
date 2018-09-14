@@ -24,10 +24,9 @@
 
 ### Upload firmware with PlatformIO Tools
 
-To use it we need to download and install it from the official website. Follow the installation instructions on https://mongoose-os.com/docs/quickstart/setup.html.
+Follow the installation instructions on https://platformio.org/get-started to install PlatformIO Tools.
 
-* `mos build --arch esp32` or `mos build --arch esp8266`
-* `mos flash`
+* `platformio run -e esp32`
 
 ### Provision and config
 
