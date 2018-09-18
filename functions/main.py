@@ -4,8 +4,6 @@ import os
 import json
 
 from flask import Response, Request
-import pandas as pd
-from pandas_gbq import to_gbq, read_gbq
 from google.cloud import bigquery
 import firebase_admin
 from firebase_admin import db, initialize_app, credentials
@@ -19,10 +17,7 @@ initialize_app(options={
     'databaseURL': 'https://iot-cat-poop-detector.firebaseio.com/'
 })
 
-def insert_bigquery(data):
-    #df = pd.DataFrame.from_records([data])
-    #to_gbq(df, '{}.{}'.format(dataset_id, table_name),
-    #       project_id, if_exists='append',  )
+def insert_bigquery(data):    
     dataset_ref = client.dataset(dataset_id, project=project_id)    
     table_ref = dataset_ref.table(table_name)
     table = client.get_table(table_ref)
@@ -56,8 +51,8 @@ def query_history_data(request):
 
     deviceId = request.args.get('deviceId')
 
-    logging.info('[query_history_data][read_gbq] started.')
-    df = read_gbq("""
+    logging.info('[query_history_data][client.query] started.')
+    query = """
         SELECT
             TIMESTAMP_TRUNC(timestamp(d.timestamp), HOUR, 'America/Cuiaba') date_time,
             avg(d.temperature) as avg_temperature, 
@@ -65,7 +60,7 @@ def query_history_data(request):
             avg(d.humidity) as avg_humidity, 
             avg(d.air_quality) as avg_air_quality
         FROM
-            `iot-cat-poop-detector.detector_dataset.raw_data` d
+            `{}.{}.{}` d
         where 
             timestamp(d.timestamp) between timestamp_sub(current_timestamp, INTERVAL 7 DAY) and current_timestamp()
             and d.temperature between 0 and 100
@@ -76,10 +71,16 @@ def query_history_data(request):
             date_time
         ORDER BY
             date_time
-     """.format(deviceId), project_id=project_id, dialect='standard')
-    logging.info('[query_history_data][read_gbq] ended.')
+     """.format(project_id, dataset_id, table_name, deviceId)
+
+    query_job = client.query(query)
+    rows = query_job.result()
+
+    logging.info('[query_history_data][client.query] ended.')
 
     logging.info('[query_history_data][to_json] started.')
+
+    df = rows.to_dataframe()
     output = df.to_json(orient='records')
     resp = Response(response=output, status=200, mimetype="application/json")
     logging.info('[query_history_data][to_json] ended.')
