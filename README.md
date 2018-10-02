@@ -1,5 +1,8 @@
 # Bad Smell detector using Arduino, Google Cloud IoT Core, Python Cloud Functions and Flutter App
 
+![home](https://raw.githubusercontent.com/alvarowolfx/bad-smell-detector-gcloud-iot-flutter/master/schematic/home.jpg)
+![charts](https://raw.githubusercontent.com/alvarowolfx/bad-smell-detector-gcloud-iot-flutter/master/schematic/charts.jpeg)
+
 This project idea is to build a bad smell detector using Arduino, Google Cloud IoT Tools and access the data in a Flutter App. 
 
 Technologies involved: 
@@ -8,6 +11,10 @@ Technologies involved:
 * Cloud IoT Core
 * Python Cloud Function 
 * Flutter
+
+### Schematic
+
+![schematic](https://raw.githubusercontent.com/alvarowolfx/bad-smell-detector-gcloud-iot-flutter/master/schematic/Schematic.png)
 
 ### Setup Google cloud tools and project
 
